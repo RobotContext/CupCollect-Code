@@ -1,7 +1,7 @@
-INCLUDES = -I. -I ~/.src/boost_1_51_0/
+INCLUDES = -I. -I /usr/boost_1_51_0/
 CXX= g++
 CXXFLAGS = -g ${INCLUDES}
-OBJECTS = Image.o PPMLoader.o OfflineCellPlanner.o OfflineReachableMap.o run.o map.o
+OBJECTS = Image.o PPMLoader.o OfflineCellPlanner.o OfflineReachableMap.o run.o map.o coverage.o
 run : ${OBJECTS}
 	${CXX} ${CFLAGS} ${OBJECTS} -o run
 

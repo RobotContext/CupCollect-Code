@@ -16,7 +16,7 @@ typedef boost::geometry::model::linestring<point_t> line_t;
 enum {UPWARDS,DOWNWARDS};
 
 void remove_duplicates( std::vector< point_t > * list );
-int cover_area( pathPlanner::map::cell * cell , int radius );
+void cover_area( pathPlanner::map::cell * cell , int radius , std::vector< point_t > * route );
 
 
 #endif /*_COVERAGE_*/

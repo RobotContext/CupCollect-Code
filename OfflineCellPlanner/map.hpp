@@ -47,6 +47,7 @@ namespace pathPlanner
     void drawEdge(Img *, edge *, int);
     void printCellInfo(cell *);
     void printEdgeInfo(edge *);
+    void initMap(rw::sensor::Image *);
   };
 }
 #endif

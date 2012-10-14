@@ -23,7 +23,7 @@ void remove_duplicates( std::vector< point_t > * list )
 	}
 }
 
-int cover_area( pathPlanner::map::cell * cell , int radius )
+void cover_area( pathPlanner::map::cell * cell , int radius , std::vector< point_t > * route )
 {
 	int x_min , x_max , y_min , y_max , sweep = 1 , direction , distance ;
 	std::vector< pathPlanner::map::edge * >::iterator edge_itr;
@@ -113,17 +113,5 @@ int cover_area( pathPlanner::map::cell * cell , int radius )
 	if( bg::get<0>( list->back() ) == 0 && bg::get<1>( list->back() ) == 0)
 		list->pop_back();
 
-	//output turning points
-	bg::set<0>(temp_point , bg::get<0>(*(list->begin())));
-	bg::set<1>(temp_point , bg::get<1>(*(list->begin())));
-	for(itr = list->begin() ; itr < list->end() ; ++itr)
-	{
-		distance += boost::geometry::distance( temp_point , *itr);
-		std::cout << "(" << bg::get<0>(*itr) << "," << bg::get<1>(*itr) << ") ";
-		bg::set<0>(temp_point , bg::get<0>(*itr));
-		bg::set<1>(temp_point , bg::get<1>(*itr));
-	}
-	std::cout << std::endl;
-
-	return distance;
+	route->insert( route->end() , vertices.begin() , vertices.end() );
 }

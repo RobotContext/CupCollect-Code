@@ -262,5 +262,4 @@ namespace pathPlanner
       std::cout << (*it)->x() << "x" << (*it)->y() << "\t";
     std::cout << std::endl;
   }
-
 }

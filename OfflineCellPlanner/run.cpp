@@ -16,7 +16,7 @@
 
 #define MAX_CUPS_IN_TRAY 20
 #define SWEEP_RADIUS 20
-#define CUP_RADIUS 100
+#define CUP_RADIUS 20
 
 using namespace rw::sensor;
 using namespace rw::loaders;
@@ -27,11 +27,12 @@ const std::string mapfile = "Output/complete_map_project.pgm"; // Original map
 const std::string reachableMapFile = "Output/complete_map_reachable.pgm"; // Map only with reachable space
 const std::string workspaceMapFile = "Output/complete_map_workspace.pgm"; // Workspace map
 
+
 enum {IDLE,TRANSIT,SWEEPING};
 
 void init_map( map * newMap , std::vector< point_t > * cup_list)
 {
-	Image * workspaceMap = PPMLoader::load(workspaceMapFile);;
+	Image * workspaceMap = PPMLoader::load(workspaceMapFile);
 
 	//  // Create reachable map file and workspace map
 	//  std::cout << "Loading map" << std::endl;
@@ -61,6 +62,31 @@ void init_map( map * newMap , std::vector< point_t > * cup_list)
 	vectormap->saveAsPGM("test.pgm");
 }
 
+int getNextCell( int max )
+{
+	static int count;
+	if( ++count < 100 )
+		return count;
+	else
+		return -1;
+
+}
+
+point_t getPosition( map * mp , int cell )
+{
+	return  *(mp->cells.at( cell ).edges[0]->vertices[0]);
+}
+
+void goTo( std::vector<point_t> * route , point_t from , point_t to )
+{
+	route->push_back( to );
+}
+
+int returnCupsDistance( point_t from )
+{
+	return 200;
+}
+
 int main()
 {
 	//declarations
@@ -69,13 +95,14 @@ int main()
 			dist = 0 , 				//holds travelled distance
 			state = 0 , 			//state variable following states enum
 			tray = 0 , 				//number of cups currently in tray
+			cups_found = 0,			//number of cups collected
 			cell_id;				//id of the current cell
 	bool
 			returning = false , 	//indicates if the robot is on its way bact to cup table
 			finished = false;		//indicates if all cells have been visited
 	point_t
-			current_pos , 			//holds the current position of the robot
-			prev_pos , 				//holds the previous position of the robot
+			current_pos (10,10), 	//holds the current position of the robot
+			prev_pos (1,1) ,		//holds the previous position of the robot
 			saved_pos , 			//placeholder for a temporary saved position
 			destination;			//destination of the robot
 	std::vector< point_t >
@@ -84,14 +111,15 @@ int main()
 			cup_list;				//list of cups in sight
 	std::vector< point_t >::iterator
 			itr;					//random access iterator for point lists
-	Image * img = PPMLoader::load("img/complete_map_project1.pgm");
+	Image * img = PPMLoader::load("img/complete_map_project.pgm");
+
+
 
 	//init map and positions
 	init_map( & newMap , & cup_list );
-	bg::set<0>(current_pos , 1);
-	bg::set<1>(current_pos , 1);
-	bg::set<0>(prev_pos , 0);
-	bg::set<1>(prev_pos , 0);
+	visited.push_back(prev_pos);
+	visited.push_back(current_pos);
+
 
 	while( ! finished )
 	{
@@ -100,14 +128,15 @@ int main()
 		{
 		case IDLE:
 			//get the id of next cell to sweep
-			/*TODO: cell_id = getNextCell(); */
+			cell_id = getNextCell( newMap.cells.size() );
+//			std::cout << std::endl << "cell " << cell_id << ": ";
 			if( cell_id == -1 )
 				//search finished
 				finished = true;
 			else
 			{
 				//go to next cell
-				/* TODO: destination = getPosition( cell_id ); */
+				destination = getPosition( &newMap , cell_id );
 				state = TRANSIT;
 			}
 			break;
@@ -122,7 +151,7 @@ int main()
 					destination = saved_pos;
 					tray = 0;
 					returning = false;
-					/* TODO: goTo( &route , current_pos , destination ); */
+					goTo( &route , current_pos , destination );
 				}
 				else
 					//robot is at a room to sweep
@@ -130,7 +159,7 @@ int main()
 			}
 			else
 				//get route to destination
-				/* TODO: goTo( &route , current_pos , destination ); */
+				goTo( &route , current_pos , destination );
 				break;
 
 		case SWEEPING:
@@ -140,7 +169,6 @@ int main()
 			break;
 
 		}
-
 		//step through selected route
 		if( ! route.empty() )
 		{
@@ -153,6 +181,10 @@ int main()
 
 				//check for cups between previous point and this point
 				cup_list = cupsBetweenPoints(img , prev_pos , current_pos , CUP_RADIUS);
+//				std::cout << cup_list.size() << " cups found between "
+//						<< "("<< bg::get<0>(prev_pos) << "," << bg::get<1>(prev_pos) << ") and ("
+//						<< bg::get<0>(current_pos) << "," << bg::get<1>(current_pos) << ") " << std::endl;;
+
 				if( ! cup_list.empty() )
 				{
 					//if cups are present save current position
@@ -162,20 +194,23 @@ int main()
 					while( ! cup_list.empty() )
 					{
 						//add distance from current position to cup
-						dist += boost::geometry::distance( current_pos , *(cup_list.begin()) );
+						dist += boost::geometry::distance( current_pos , *(cup_list.begin()) );//was begin
 
 						//collect the cup and empty try if necessary
 						if( ++tray >= MAX_CUPS_IN_TRAY )
 						{
-							/* TODO: distance += 2 * returnCupsDistance( *(cup_list.begin()) ); */
+							dist += 2 * returnCupsDistance( *(cup_list.begin()) );//was begin
 							tray = 0;
 						}
 
 						//update current position
 						current_pos = *(cup_list.begin());
+						visited.push_back( current_pos );
+						//std::cout << "collected cup at ("<< bg::get<0>(current_pos) << "," << bg::get<1>(current_pos) << ") ";
 
 						//remove the collected cup from list
 						cup_list.erase( cup_list.begin() );
+						cups_found++;
 					}
 
 					//add distance from the position of last cup to saved position
@@ -191,9 +226,13 @@ int main()
 				bg::set<1>(prev_pos , bg::get<1>(current_pos));
 			}
 		}
+		visited.insert(visited.end() , route.begin() , route.end() );
+		route.clear();
 	}
-
-	std::cout << "covered distance:" << dist * 0.1 << "m" << std::endl;
+	//print entire route
+//	for(itr = visited.begin() ; itr < visited.end() ; ++itr)
+//		std::cout << "("<< bg::get<0>(*itr) << "," << bg::get<1>(*itr) << ") ";
+	std::cout << cups_found << " cups found while covering " << dist * 0.1 << "m" << std::endl;
 
 	return 0;
 }

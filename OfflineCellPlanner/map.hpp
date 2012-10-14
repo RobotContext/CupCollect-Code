@@ -27,6 +27,7 @@ namespace pathPlanner
     public:
       std::vector<edge *> edges;
       int cellId;
+      bool visited;
     };
 
     std::vector<point_t> vertices;
@@ -48,6 +49,7 @@ namespace pathPlanner
     void printCellInfo(cell *);
     void printEdgeInfo(edge *);
     void initMap(rw::sensor::Image *);
+    void saveImage( Img * , std::basic_string<char, std::char_traits<char>, std::allocator<char> >);
   };
 }
 #endif

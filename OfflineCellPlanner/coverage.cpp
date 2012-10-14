@@ -113,5 +113,5 @@ void cover_area( pathPlanner::map::cell * cell , int radius , std::vector< point
 	if( bg::get<0>( list->back() ) == 0 && bg::get<1>( list->back() ) == 0)
 		list->pop_back();
 
-	route->insert( route->end() , list.begin() , list.end() );
+	route->insert( route->end() , vertices.begin() , vertices.end() );
 }

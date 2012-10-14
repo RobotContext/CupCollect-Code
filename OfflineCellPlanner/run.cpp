@@ -6,6 +6,9 @@
 #include "OfflineReachableMap.hpp"
 #include "map.hpp"
 #include "coverage.hpp"
+#include "cupScanner.hpp"
+#include "Image.hpp"
+#include "PPMLoader.hpp"
 #include <stdlib.h>
 #include <math.h>
 #include <vector>
@@ -24,9 +27,11 @@ const std::string mapfile = "Output/complete_map_project.pgm"; // Original map
 const std::string reachableMapFile = "Output/complete_map_reachable.pgm"; // Map only with reachable space
 const std::string workspaceMapFile = "Output/complete_map_workspace.pgm"; // Workspace map
 
-void init_map( map * newMap )
+enum {IDLE,TRANSIT,SWEEPING};
+
+void init_map( map * newMap , std::vector< point_t > * cup_list)
 {
-	Image * workspaceMap;
+	Image * workspaceMap = PPMLoader::load(workspaceMapFile);;
 
 	//  // Create reachable map file and workspace map
 	//  std::cout << "Loading map" << std::endl;
@@ -38,9 +43,6 @@ void init_map( map * newMap )
 	//  OfflineReachableMap::makeWorkspaceMap(reachableMap, workspaceMap);
 	//  reachableMap->saveAsPGM(reachableMapFile);
 	//  workspaceMap->saveAsPGM(workspaceMapFile);
-
-	/* Load existing workspace map file */
-	workspaceMap = PPMLoader::load(workspaceMapFile);
 
 	// Output
 	newMap->vertices.reserve(100000);
@@ -58,8 +60,6 @@ void init_map( map * newMap )
 	newMap->drawMap(vectormap);
 	vectormap->saveAsPGM("test.pgm");
 }
-
-enum {IDLE,TRANSIT,SWEEPING} states;
 
 int main()
 {
@@ -84,9 +84,10 @@ int main()
 			cup_list;				//list of cups in sight
 	std::vector< point_t >::iterator
 			itr;					//random access iterator for point lists
+	Image * img = PPMLoader::load("img/complete_map_project1.pgm");
 
 	//init map and positions
-	init_map( & newMap );
+	init_map( & newMap , & cup_list );
 	bg::set<0>(current_pos , 1);
 	bg::set<1>(current_pos , 1);
 	bg::set<0>(prev_pos , 0);
@@ -112,7 +113,7 @@ int main()
 			break;
 
 		case TRANSIT:
-			if( current_pos == destination )
+			if( bg::get<0>(current_pos) == bg::get<0>(destination) && bg::get<1>(current_pos) == bg::get<1>(destination) )
 			{
 				//destination has been reached
 				if( returning )
@@ -141,27 +142,27 @@ int main()
 		}
 
 		//step through selected route
-		if( ! route.isEmpty() )
+		if( ! route.empty() )
 		{
 			//step through route
 			for(itr = route.begin() ; itr < route.end() ; ++itr)
 			{
 				//update current point
-				bg::set<0>(current_point , bg::get<0>(*itr));
-				bg::set<1>(current_point , bg::get<1>(*itr));
+				bg::set<0>(current_pos , bg::get<0>(*itr));
+				bg::set<1>(current_pos , bg::get<1>(*itr));
 
 				//check for cups between previous point and this point
-				/* TODO: cupsBetweenPoints ( &cup_list , prev_pos , current_point , CUP_RADIUS ); */
-				if( ! cup_list.isEmpty() )
+				cup_list = cupsBetweenPoints(img , prev_pos , current_pos , CUP_RADIUS);
+				if( ! cup_list.empty() )
 				{
 					//if cups are present save current position
-					save_pos = current_pos;
+					saved_pos = current_pos;
 
 					//iterate through list of cups
-					while( ! cup_list.isEmpty() )
+					while( ! cup_list.empty() )
 					{
 						//add distance from current position to cup
-						distance += boost::geometry::distance( current_point , *(cup_list.begin()) );
+						dist += boost::geometry::distance( current_pos , *(cup_list.begin()) );
 
 						//collect the cup and empty try if necessary
 						if( ++tray >= MAX_CUPS_IN_TRAY )
@@ -174,20 +175,20 @@ int main()
 						current_pos = *(cup_list.begin());
 
 						//remove the collected cup from list
-						cup_list.pop_front();
+						cup_list.erase( cup_list.begin() );
 					}
 
 					//add distance from the position of last cup to saved position
-					distance += boost::geometry::distance( current_point , saved_pos );
-					current_point = saved_pos;
+					dist += boost::geometry::distance( current_pos , saved_pos );
+					current_pos = saved_pos;
 				}
 
 				//add distance from previous to current point
-				distance += boost::geometry::distance( prev_point , *itr);
+				dist += boost::geometry::distance( prev_pos , *itr);
 
 				//update previous point
-				bg::set<0>(prev_point , bg::get<0>(current_point));
-				bg::set<1>(prev_point , bg::get<1>(current_point));
+				bg::set<0>(prev_pos , bg::get<0>(current_pos));
+				bg::set<1>(prev_pos , bg::get<1>(current_pos));
 			}
 		}
 	}

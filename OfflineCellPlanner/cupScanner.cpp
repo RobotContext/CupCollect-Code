@@ -111,7 +111,9 @@ std::vector<point_t> cupsBetweenPoints (Image* map, point_t from, point_t to, un
 				if ((y >= 0) && (y < map->getWidth()) && (x >= 0) && (x < map->getHeight()))
 					result.push_back(point_t(x, y));				//	Cup detected, add to result
 
-			if (showCoverage) result.push_back(point_t(x, y));	//	Add coverage point, add to result
+			if (showCoverage)
+				if ((y >= 0) && (y < map->getWidth()) && (x >= 0) && (x < map->getHeight()))
+					result.push_back(point_t(x, y));				//	Coverage point, add to result
 		}
 	}
 

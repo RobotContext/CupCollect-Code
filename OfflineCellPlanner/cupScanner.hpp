@@ -1,7 +1,6 @@
 #ifndef _CUP_SCANNER_
 #define _CUP_SCANNER_
 
-#include <iostream>
 #include <vector>
 #include <math.h>
 #include <boost/geometry/geometry.hpp>

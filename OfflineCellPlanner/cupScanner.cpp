@@ -1,10 +1,4 @@
-/*
- * main.cpp
- *
- *  Created on: 11/10/2012
- *      Author: Kent
- */
-
+//#include <iostream>
 #include "cupScanner.hpp"
 
 using namespace rw::loaders;
@@ -148,6 +142,7 @@ std::vector<point_t> findCups (Image* map)
 	return cups;
 }
 
+//	Test of unit
 //int main ( void )
 //{
 //	std::cout << " Loading map..." << std::endl;

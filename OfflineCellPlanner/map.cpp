@@ -263,4 +263,10 @@ namespace pathPlanner
     std::cout << std::endl;
   }
 
+  void map::saveImage( Img * img , std::basic_string<char, std::char_traits<char>, std::allocator<char> > path )
+  {
+  	// save image
+  	img->saveAsPGM(path);
+  	std::cout << "File saved" << std::endl;
+  }
 }

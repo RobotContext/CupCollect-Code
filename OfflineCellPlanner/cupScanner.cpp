@@ -107,13 +107,23 @@ std::vector<point_t> cupsBetweenPoints (Image* map, point_t from, point_t to, un
 
 		for (; x <= endX; x++)
 		{
-			if (!showCoverage && (map->getPixelValuei( x, y, 0 ) == 150))
-				if ((y >= 0) && (y < map->getWidth()) && (x >= 0) && (x < map->getHeight()))
-					result.push_back(point_t(x, y));				//	Cup detected, add to result
+			//std::cout << "Point analysed: (" << x << "," << y << ") - Picture dimensions: (" << map->getWidth() << "," << map->getHeight() << ")" << std::endl;
 
-			if (showCoverage)
-				if ((y >= 0) && (y < map->getWidth()) && (x >= 0) && (x < map->getHeight()))
+			if ((x >= 0) && (x < (int)map->getWidth()) && (y >= 0) && (y < (int)map->getHeight()))
+			{
+				if (showCoverage)
+				{
 					result.push_back(point_t(x, y));				//	Coverage point, add to result
+				}
+				else
+				{
+					if ((map->getPixelValuei( x, y, 0 ) == 150))
+					{
+						map->setPixel8U( x , y , 0 );				//	Paint cup on map
+						result.push_back(point_t(x, y));			//	Cup detected, add to result
+					}
+				}
+			}
 		}
 	}
 
@@ -143,54 +153,3 @@ std::vector<point_t> findCups (Image* map)
 
 	return cups;
 }
-
-//	Test of unit
-//int main ( void )
-//{
-//	std::cout << " Loading map..." << std::endl;
-//	Image* img = PPMLoader::load("img/complete_map_project1.pgm");
-//	std::cout << " Width: " << img->getWidth() << "    Height: " << img->getHeight() << std::endl << std::endl;
-//
-//	std::cout << " Line sweeping map..." << std::endl;
-//	std::vector<point_t> cupsPosition = findCups(img);
-//	std::cout << std::endl << " Number of cups: " << cupsPosition.size() << std::endl << std::endl;
-//
-//	std::cout << " Testing cupsBetweenPoints function..." << std::endl;
-//
-//	//	Testcases
-//	//std::vector<point_t> pointsToPlot = cupsBetweenPoints(img, point_t(625,1078), point_t(775,1078), 4, true);
-//	//std::vector<point_t> pointsToPlot = cupsBetweenPoints(img, point_t(675,175), point_t(700,225), 4, true);
-//	//std::vector<point_t> pointsToPlot = cupsBetweenPoints(img, point_t(675,175), point_t(700,125), 4, true);
-//	//std::vector<point_t> pointsToPlot = cupsBetweenPoints(img, point_t(3615,775), point_t(3650,740), 4, true);
-//	//std::vector<point_t> pointsToPlot = cupsBetweenPoints(img, point_t(2755,280), point_t(2735,250), 4, true);
-//	//std::vector<point_t> pointsToPlot = cupsBetweenPoints(img, point_t(1350,1300), point_t(1310,1255), 4, true);
-//	//std::vector<point_t> pointsToPlot = cupsBetweenPoints(img, point_t(1310,1380), point_t(1280,1415), 4, true);
-//	//std::vector<point_t> pointsToPlot = cupsBetweenPoints(img, point_t(1475,1270), point_t(1075,1270), 4, true);
-//	//std::vector<point_t> pointsToPlot = cupsBetweenPoints(img, point_t(1075,1270), point_t(1475,1270), 4, true);
-//	//std::vector<point_t> pointsToPlot = cupsBetweenPoints(img, point_t(1275,1150), point_t(1275,1475), 4, true);
-//	//std::vector<point_t> pointsToPlot = cupsBetweenPoints(img, point_t(1275,1475), point_t(1275,1150), 4, true);
-//	//std::vector<point_t> pointsToPlot = cupsBetweenPoints(img, point_t(1275,1475), point_t(3950,200), 4, true);
-//	//std::vector<point_t> pointsToPlot = cupsBetweenPoints(img, point_t(1275,1475), point_t(3950,200), 4, false);
-//
-//	/*
-//	This is the function to use
-//	*/
-//	std::vector<point_t> pointsToPlot = cupsBetweenPoints(img, point_t(1310,1380), point_t(1280,1415), 4);
-//
-//
-//	//	Handle output from cupsBetweenPoints
-//	std::cout << std::endl << " Number of points to plot: " << pointsToPlot.size() << std::endl << std::endl;
-//	for (unsigned int i = 0; i < pointsToPlot.size(); i++)
-//		img->setPixel8U(pointsToPlot.at(i).x(), pointsToPlot.at(i).y(), 0);
-//
-//	std::cout << " Saving map..." << std::endl;
-//	img->saveAsPGM("output.pgm");
-//
-//	// cleanup
-//	delete img;
-//
-//	std::cout << std::endl << " Exiting... " << std::endl;
-//
-//	return 0;
-//}
-//

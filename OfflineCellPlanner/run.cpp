@@ -145,7 +145,7 @@ void merge_with_neighbours( pathPlanner::map::cell * cell , std::vector<point_t>
 int main()
 {
 	//declarations
-	Image * img = PPMLoader::load("img/complete_map_project.pgm");
+	Image * img = PPMLoader::load("img/fast_load_complete_map_project.pgm");
 	map 	newMap;			//map object
 	road_map rm;
 
@@ -170,6 +170,7 @@ int main()
 	std::vector< point_t >
 	visited , 				//list of the points visited since start
 	route , 				//the current route
+//	cups_found_list,
 	cup_list;				//list of cups in sight
 
 	std::vector< point_t >::iterator
@@ -260,7 +261,8 @@ int main()
 				bg::set<1>(current_pos , bg::get<1>(*itr));
 
 				//check for cups between previous point and this point
-				//cup_list = cupsBetweenPoints(img , prev_pos , current_pos , CUP_RADIUS);
+				cup_list = cupsBetweenPoints(img , prev_pos , current_pos , CUP_RADIUS);
+				visited.push_back( *itr );
 
 				if( ! cup_list.empty() )
 				{
@@ -282,7 +284,6 @@ int main()
 
 						//update current position
 						current_pos = *(cup_list.begin());
-						visited.push_back( current_pos );
 
 						//remove the collected cup from list
 						cup_list.erase( cup_list.begin() );
@@ -301,13 +302,10 @@ int main()
 				bg::set<0>(prev_pos , bg::get<0>(current_pos));
 				bg::set<1>(prev_pos , bg::get<1>(current_pos));
 			}
+			route.clear();
 		}
-		visited.insert(visited.end() , route.begin() , route.end() );
-		route.clear();
 	}
 	//print entire route
-	//	for(itr = visited.begin() ; itr < visited.end() ; ++itr)
-	//		std::cout << "("<< bg::get<0>(*itr) << "," << bg::get<1>(*itr) << ") ";
 	std::cout << cups_found << " cups found while covering " << dist * 0.1 << "m" << std::endl;
 
 	//visualize covered area

@@ -1,10 +1,4 @@
-/*
- * main.cpp
- *
- *  Created on: 11/10/2012
- *      Author: Kent
- */
-
+//#include <iostream>
 #include "cupScanner.hpp"
 
 using namespace rw::loaders;
@@ -113,10 +107,16 @@ std::vector<point_t> cupsBetweenPoints (Image* map, point_t from, point_t to, un
 
 		for (; x <= endX; x++)
 		{
-			if (!showCoverage && (map->getPixelValuei( x, y, 0 ) == 150))
-				result.push_back(point_t(x, y));				//	Cup detected, add to result
+			if (!showCoverage && (y >= 0) && (y < map->getWidth()) && (x >= 0) && (x < map->getHeight()))
+				if ((map->getPixelValuei( x, y, 0 ) == 150))
+				{
+					map->setPixel8U( x , y , 0 );
+					result.push_back(point_t(x, y));				//	Cup detected, add to result
+				}
 
-			if (showCoverage) result.push_back(point_t(x, y));	//	Add coverage point, add to result
+			if (showCoverage)
+				if ((y >= 0) && (y < map->getWidth()) && (x >= 0) && (x < map->getHeight()))
+					result.push_back(point_t(x, y));				//	Coverage point, add to result
 		}
 	}
 
@@ -147,6 +147,7 @@ std::vector<point_t> findCups (Image* map)
 	return cups;
 }
 
+//	Test of unit
 //int main ( void )
 //{
 //	std::cout << " Loading map..." << std::endl;
